@@ -2,8 +2,10 @@ package com.reactnativecommunity.webview;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,6 +28,7 @@ import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
 import android.webkit.PermissionRequest;
@@ -764,6 +767,24 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         @Override
         public Bitmap getDefaultVideoPoster() {
           return Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888);
+        }
+
+        // Work around to fix Android ugly alert i.e to remove url in the android alert title.
+        @Override
+        public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
+          AlertDialog dialog = new AlertDialog.Builder(view.getContext()).
+            // As of now it is empty to match ios alert.
+            setTitle("").
+            setMessage(message).
+            setPositiveButton("OK", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                //do nothing
+              }
+            }).create();
+          dialog.show();
+          result.confirm();
+          return true;
         }
       };
       webView.setWebChromeClient(mWebChromeClient);
